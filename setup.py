@@ -17,5 +17,5 @@ setup(
     author_email='thomasgdane@gmail.com',
     url='https://github.com/thomasgdane/timpani',
     license=license,
-    package=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs'))
 )
