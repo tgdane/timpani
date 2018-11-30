@@ -17,7 +17,7 @@ def test_run_isolated_test(mock_run_pytest):
 @mock.patch('subprocess.Popen')
 def test_run_pytest(mock_subproc_popen):
     process_mock = mock.Mock()
-    attrs = {'communicate.return_value': ('output', 'error')}
+    attrs = {'communicate.return_value': (b'output', 'error')}
     process_mock.configure_mock(**attrs)
     mock_subproc_popen.return_value = process_mock
 
