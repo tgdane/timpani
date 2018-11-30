@@ -17,7 +17,14 @@ def list_touched_files(project: str, test_file: str) -> List[str]:
     """
     stdout = run_isolated_test(project, test_file)
     lines = [l for l in stdout.splitlines() if l]
-    return lines
+
+    sources = []
+    for line in lines:
+        cols = line.split()
+        if (len(cols) is 4) and (cols[0].endswith('.py')) and ('%' in cols[3]):
+            if int(cols[3].strip('%')) > 0:
+                sources.append(cols[0])
+    return sources
 
 
 def run_isolated_test(project: str, test_file: str):
