@@ -1,23 +1,25 @@
-import nose
+import subprocess
 from unittest import mock
 
 from timpani import test_runner
 
 
-def test_exec_nose():
-    nose.run = mock.MagicMock(return_value=True)
-    ret = test_runner.exec_nose()
-    assert nose.run.called_once()
-    assert ret
+def test_run_isolated_test():
+    test_runner.run_pytest = mock.MagicMock(return_value='output')
+    out = test_runner.run_isolated_test('bob', 'tests/test_bob.py')
+    assert test_runner.run_pytest.called_once_with(
+        ['--cov=bob', 'tests/test_bob.py']
+    )
+    assert out == 'output'
 
 
-def test_exec_nose_failure():
-    nose.run = mock.MagicMock(return_value=False)
-    ret = test_runner.exec_nose()
-    assert not ret
+@mock.patch('subprocess.Popen')
+def test_run_pytest(mock_subproc_popen):
+    process_mock = mock.Mock()
+    attrs = {'communicate.return_value': ('output', 'error')}
+    process_mock.configure_mock(**attrs)
+    mock_subproc_popen.return_value = process_mock
 
-
-def test_exec_nose_with_options():
-    nose.run = mock.MagicMock()
-    test_runner.exec_nose([1, 2])
-    assert nose.run.called_once_with([1, 2])
+    out = test_runner.run_pytest([1, 2])
+    assert subprocess.Popen.called_once_with(['py.test', 1, 2])
+    assert out == 'output'
