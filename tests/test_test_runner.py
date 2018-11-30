@@ -4,10 +4,11 @@ from unittest import mock
 from timpani import test_runner
 
 
-def test_run_isolated_test():
-    test_runner.run_pytest = mock.MagicMock(return_value='output')
+@mock.patch('timpani.test_runner.run_pytest')
+def test_run_isolated_test(mock_run_pytest):
+    mock_run_pytest.return_value = 'output'
     out = test_runner.run_isolated_test('bob', 'tests/test_bob.py')
-    assert test_runner.run_pytest.called_once_with(
+    assert mock_run_pytest.called_once_with(
         ['--cov=bob', 'tests/test_bob.py']
     )
     assert out == 'output'
@@ -21,5 +22,6 @@ def test_run_pytest(mock_subproc_popen):
     mock_subproc_popen.return_value = process_mock
 
     out = test_runner.run_pytest([1, 2])
-    assert subprocess.Popen.called_once_with(['py.test', 1, 2])
+    assert mock_subproc_popen.called_once_with(['py.test', 1, 2])
+    assert mock_subproc_popen.communicate.called_once()
     assert out == 'output'
