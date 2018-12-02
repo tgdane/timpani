@@ -3,21 +3,29 @@ import subprocess
 from typing import List
 
 
-def list_touched_files(project: str, test_file: str) -> List[str]:
+def find_tested_sources(project: str, test_file: str) -> List[str]:
     """
     Run a single test in isolation and get all source files that
     were impacted by the test.
-
-    The method reads the output of a py.test --cov run and looks for
-    all source files that have > 0% coverage.
 
     :param project: Name of the source directory.
     :param test_file: Name of the test file.
     :return: List of source files that were touched.
     """
-    stdout = run_isolated_test(project, test_file)
-    lines = [l for l in stdout.splitlines() if l]
+    coverage = generate_coverage(project, test_file)
+    return parse_coverage(coverage)
 
+
+def parse_coverage(lines: List[str]) -> List[str]:
+    """
+    Return a list of source files impacted by a test run.
+
+    The method reads the output of a py.test --cov run and looks for
+    all source files that have > 0% coverage.
+
+    :param lines: Output lines from py.test
+    :return: List of test files.
+    """
     sources = []
     for line in lines:
         cols = line.split()
@@ -27,9 +35,9 @@ def list_touched_files(project: str, test_file: str) -> List[str]:
     return sources
 
 
-def run_isolated_test(project: str, test_file: str):
+def generate_coverage(project: str, test_file: str):
     """
-    Run a single test file in isolation.
+    Run a single test file in and return coverage results.
 
     :param project: Name of the source directory.
     :param test_file: Name of the test file.
@@ -42,7 +50,7 @@ def run_isolated_test(project: str, test_file: str):
     return run_pytest(options)
 
 
-def run_pytest(options: List[str] = None) -> str:
+def run_pytest(options: List[str] = None) -> List[str]:
     """
     Run a pytest command and return the stdout.
 
@@ -52,7 +60,7 @@ def run_pytest(options: List[str] = None) -> str:
     see: https://docs.pytest.org/en/latest/usage.html#calling-pytest-from-python-code
 
     :param options: List of options to pass to pytest.
-    :return:
+    :return: List of lines output to stdout during pytest run.
     """
     cmd = ['py.test']
     if options:
@@ -60,4 +68,4 @@ def run_pytest(options: List[str] = None) -> str:
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     stdout, _ = process.communicate()
-    return stdout.decode()
+    return stdout.decode().splitlines()
